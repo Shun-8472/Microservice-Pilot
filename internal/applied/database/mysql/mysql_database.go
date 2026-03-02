@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"database/sql"
+	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -26,6 +27,10 @@ func (d Database) ConnectDatabase() {
 
 	DatabaseConnection, err = sql.Open("mysql", connectionInfo)
 	if err != nil {
-		panic("failed to connect database")
+		panic("failed to open database: " + err.Error())
+	}
+
+	if err = DatabaseConnection.Ping(); err != nil {
+		panic(fmt.Sprintf("failed to ping database (%s): %v", connectionInfo, err))
 	}
 }

@@ -10,9 +10,12 @@ services:
     networks:
       - app-network
     depends_on:
-      - db
-      - redis
-      - llm
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      llm:
+        condition: service_started
     links:
       - db
       - redis
@@ -30,8 +33,17 @@ services:
     networks:
       - app-network
     environment:
-      - MYSQL_DATABASE=mySql
+      - MYSQL_DATABASE=travel_planning
       - MYSQL_ROOT_PASSWORD=password
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -ppassword --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
   llm:
     image: ollama/ollama:latest
     ports:
@@ -42,3 +54,6 @@ services:
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  db-data:

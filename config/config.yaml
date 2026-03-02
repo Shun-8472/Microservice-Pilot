@@ -5,8 +5,8 @@ server:
 mysql:
   dbuser:     "root"
   dbpassword: "password"
-  dbname:     "mySql"
-  dbhost:     "0.0.0.0"
+  dbname:     "travel_planning"
+  dbhost:     "db"
   dbport:     3306
 
 redis:
@@ -16,4 +16,8 @@ redis:
   db: 0
 
 llm:
+  provider: "ollama"
+  model: "mistral"
   ollamamodel: "mistral"
+  baseurl: ""
+  apikey: ""

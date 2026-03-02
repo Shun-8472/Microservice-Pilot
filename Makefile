@@ -4,7 +4,7 @@ docker:
 
 .PHONY: deploy
 deploy:
-	docker-compose -p demo -f ./depoly/compose.yaml up -d
+	docker-compose -p demo -f ./depoly/compose.yaml up -d --build
 
 .PHONY: inject
 inject:

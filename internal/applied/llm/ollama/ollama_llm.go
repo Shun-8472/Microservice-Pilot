@@ -1,13 +1,12 @@
 package ollama
 
 import (
-	"github.com/tmc/langchaingo/llms/ollama"
+	"strings"
+
+	llmOllama "github.com/tmc/langchaingo/llms/ollama"
 
 	"mini/config"
-)
-
-var (
-	LLMConnection = new(ollama.LLM)
+	appliedLLM "mini/internal/applied/llm"
 )
 
 type LLM struct {
@@ -18,10 +17,17 @@ func NewConnection() *LLM {
 }
 
 func (l *LLM) ConnectLLM() {
-	client, err := ollama.New(ollama.WithModel(config.C.LLM.Ollamamodel))
+	options := []llmOllama.Option{
+		llmOllama.WithModel(config.GetLLMModel()),
+	}
+	if baseURL := strings.TrimSpace(config.C.LLM.BaseURL); baseURL != "" {
+		options = append(options, llmOllama.WithServerURL(baseURL))
+	}
+
+	client, err := llmOllama.New(options...)
 
 	if err != nil {
 		panic(err)
 	}
-	LLMConnection = client
+	appliedLLM.Connection = client
 }

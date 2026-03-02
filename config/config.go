@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -43,7 +44,11 @@ type Redis struct {
 }
 
 type LLM struct {
+	Provider    string
+	Model       string
 	Ollamamodel string
+	BaseURL     string
+	APIKey      string
 }
 
 func InitConfigs() {
@@ -79,4 +84,22 @@ func GetMySqlAddress() string {
 
 func GetRedisAddress() string {
 	return fmt.Sprintf("%s:%d", C.Redis.Host, C.Redis.Port)
+}
+
+func GetLLMProvider() string {
+	provider := strings.TrimSpace(strings.ToLower(C.LLM.Provider))
+	if provider == "" {
+		return "ollama"
+	}
+	return provider
+}
+
+func GetLLMModel() string {
+	if model := strings.TrimSpace(C.LLM.Model); model != "" {
+		return model
+	}
+	if legacy := strings.TrimSpace(C.LLM.Ollamamodel); legacy != "" {
+		return legacy
+	}
+	return "mistral"
 }
