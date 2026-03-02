@@ -5,8 +5,8 @@ server:
 mysql:
   dbuser:     "root"
   dbpassword: "password"
-  dbname:     "mySql"
-  dbhost:     "0.0.0.0"
+  dbname:     "schedule_events"
+  dbhost:     "db"
   dbport:     3306
 
 redis:

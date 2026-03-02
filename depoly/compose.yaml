@@ -1,6 +1,6 @@
 services:
   application:
-    image: mini:latest
+    image: schedule:latest
     restart: always
     build:
       context: ../
@@ -30,8 +30,11 @@ services:
     networks:
       - app-network
     environment:
-      - MYSQL_DATABASE=mySql
+      - MYSQL_DATABASE=schedule_events
       - MYSQL_ROOT_PASSWORD=password
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
   llm:
     image: ollama/ollama:latest
     ports:
@@ -42,3 +45,6 @@ services:
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  db-data:

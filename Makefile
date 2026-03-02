@@ -4,7 +4,7 @@ docker:
 
 .PHONY: deploy
 deploy:
-	docker-compose -p demo -f ./depoly/compose.yaml up -d
+	docker-compose -p schedule_agent -f ./depoly/compose.yaml up -d
 
 .PHONY: inject
 inject:
