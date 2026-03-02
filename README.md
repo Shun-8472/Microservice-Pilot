@@ -59,3 +59,50 @@ You can use the Makefile to build and run the service efficiently.
 ```shell
   make deploy
 ```
+
+## 🤖 Travel Planning Agent (New)
+`ChatService` now runs a simple travel-planning agent flow:
+- Parse user input (destination, days, budget, interests)
+- Execute callable tools:
+  - `weather_lookup_tool`
+  - `attraction_search_tool`
+  - `budget_calc_tool`
+  - `itinerary_scheduler_tool`
+- Ask LLM to produce final plan (with deterministic fallback if LLM fails)
+- Persist memory:
+  - **Short-term session memory** in Redis
+  - **Long-term preferences/history** in MySQL
+
+### LLM provider config
+Edit `/config/config.yaml`:
+
+```yaml
+llm:
+  provider: "ollama"   # "ollama" | "vllm" | "openai"
+  model: "mistral"
+  baseurl: ""          # Example for vLLM: "http://127.0.0.1:8000/v1"
+  apikey: ""           # vLLM can usually use any non-empty token
+```
+
+### Example gRPC call
+```shell
+grpcurl -plaintext -d '{
+  "session_id":"trip-session-001",
+  "user_id":"alice",
+  "return_tool_results":true,
+  "user_input":"Plan a 4 day trip to Tokyo for 2 people, budget $2000, we like food and culture"
+}' 127.0.0.1:8080 chat.v1.ChatService/GenerateMessage
+```
+
+### Multi-turn protocol fields
+`ChatRequest` now supports:
+- `session_id`: keep same value across turns for Redis short-memory
+- `user_id`: keep same value across sessions for MySQL long-memory
+- `return_tool_results`: if `true`, response includes executed tool outputs
+
+`ChatResponse` now includes:
+- `response`: assistant text
+- `response_lines[]`: line-split view for easier reading in Postman
+- `session_id`, `turn_id`
+- `type`: `STATUS` / `TOOL_RESULT` / `FINAL`
+- `tool_results[]`: tool I/O traces (for unary and streaming events)

@@ -2,11 +2,9 @@ package chat
 
 import (
 	"context"
-
-	"github.com/tmc/langchaingo/llms"
+	"strings"
 
 	pb "mini/external/protos/chat/v1"
-	"mini/internal/applied/llm/ollama"
 	proc "mini/internal/processor/version/procedure/chat"
 )
 
@@ -15,37 +13,117 @@ type impl struct {
 }
 
 func (i impl) GenerateMessage(ctx context.Context, request *pb.ChatRequest) (*pb.ChatResponse, error) {
-	content := []llms.MessageContent{
-		llms.TextParts(llms.ChatMessageTypeHuman, request.UserInput),
-	}
-
-	result, err := ollama.LLMConnection.GenerateContent(ctx, content)
+	response, err := i.proc.GenerateMessage(ctx, proc.Request{
+		UserInput:         request.UserInput,
+		SessionID:         request.SessionId,
+		UserID:            request.UserId,
+		ReturnToolResults: request.ReturnToolResults,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	var responseText string
-	if len(result.Choices) > 0 {
-		responseText = result.Choices[0].Content
-	} else {
-		responseText = "No response generated."
-	}
-
-	return &pb.ChatResponse{Response: responseText}, nil
+	return toPBResponse(response, request.ReturnToolResults), nil
 }
 
 func (i impl) StreamMessage(request *pb.ChatRequest, stream pb.ChatService_StreamMessageServer) error {
-	content := []llms.MessageContent{
-		llms.TextParts(llms.ChatMessageTypeHuman, request.UserInput),
+	return i.proc.StreamMessage(stream.Context(), proc.Request{
+		UserInput:         request.UserInput,
+		SessionID:         request.SessionId,
+		UserID:            request.UserId,
+		ReturnToolResults: request.ReturnToolResults,
+	}, func(event proc.StreamEvent) error {
+		return stream.Send(toPBStreamEvent(event, request.ReturnToolResults))
+	})
+}
+
+func toPBResponse(response proc.Response, returnToolResults bool) *pb.ChatResponse {
+	result := &pb.ChatResponse{
+		Response:      response.Response,
+		SessionId:     response.SessionID,
+		TurnId:        response.TurnID,
+		Type:          toPBResponseType(response.Type),
+		ResponseLines: toResponseLines(response.Response),
+	}
+	if returnToolResults {
+		result.ToolResults = toPBToolResults(response.ToolResult)
 	}
 
-	_, err := ollama.LLMConnection.GenerateContent(context.Background(), content, llms.WithStreamingFunc(func(ctx context.Context, chunk []byte) error {
-		if err := stream.Send(&pb.ChatResponse{Response: string(chunk)}); err != nil {
-			return err
+	return result
+}
+
+func toPBStreamEvent(event proc.StreamEvent, returnToolResults bool) *pb.ChatResponse {
+	result := &pb.ChatResponse{
+		Response:      event.Response,
+		SessionId:     event.SessionID,
+		TurnId:        event.TurnID,
+		Type:          toPBResponseType(event.Type),
+		ResponseLines: toResponseLines(event.Response),
+	}
+	if returnToolResults && event.ToolResult != nil {
+		result.ToolResults = []*pb.ToolExecutionResult{
+			{
+				ToolName:   event.ToolResult.ToolName,
+				ToolInput:  event.ToolResult.ToolInput,
+				ToolOutput: event.ToolResult.ToolOutput,
+				Success:    event.ToolResult.Success,
+			},
 		}
+	}
+	return result
+}
+
+func toPBToolResults(toolResults []proc.ToolExecutionResult) []*pb.ToolExecutionResult {
+	if len(toolResults) == 0 {
 		return nil
-	}))
-	return err
+	}
+
+	result := make([]*pb.ToolExecutionResult, 0, len(toolResults))
+	for _, toolResult := range toolResults {
+		result = append(result, &pb.ToolExecutionResult{
+			ToolName:   toolResult.ToolName,
+			ToolInput:  toolResult.ToolInput,
+			ToolOutput: toolResult.ToolOutput,
+			Success:    toolResult.Success,
+		})
+	}
+
+	return result
+}
+
+func toPBResponseType(responseType proc.ResponseType) pb.ChatResponseType {
+	switch responseType {
+	case proc.ResponseTypeStatus:
+		return pb.ChatResponseType_CHAT_RESPONSE_TYPE_STATUS
+	case proc.ResponseTypeToolResult:
+		return pb.ChatResponseType_CHAT_RESPONSE_TYPE_TOOL_RESULT
+	case proc.ResponseTypeFinal:
+		return pb.ChatResponseType_CHAT_RESPONSE_TYPE_FINAL
+	default:
+		return pb.ChatResponseType_CHAT_RESPONSE_TYPE_UNSPECIFIED
+	}
+}
+
+func toResponseLines(text string) []string {
+	normalized := strings.ReplaceAll(text, "\r\n", "\n")
+	if strings.TrimSpace(normalized) == "" {
+		return nil
+	}
+
+	lines := strings.Split(normalized, "\n")
+	result := make([]string, 0, len(lines))
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			continue
+		}
+		result = append(result, trimmed)
+	}
+
+	if len(result) == 0 {
+		return nil
+	}
+	return result
 }
 
 func ProvideReceiver(proc proc.Procedure) Receiver {

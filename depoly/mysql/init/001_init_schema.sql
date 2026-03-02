@@ -1,0 +1,21 @@
+CREATE DATABASE IF NOT EXISTS mySql;
+USE mySql;
+
+CREATE TABLE IF NOT EXISTS chat_history (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  session_id VARCHAR(128) NOT NULL,
+  user_id VARCHAR(128) NOT NULL,
+  role VARCHAR(32) NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_user_created (user_id, created_at),
+  INDEX idx_session_created (session_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS user_preferences (
+  user_id VARCHAR(128) NOT NULL,
+  pref_key VARCHAR(128) NOT NULL,
+  pref_value TEXT NOT NULL,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, pref_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
