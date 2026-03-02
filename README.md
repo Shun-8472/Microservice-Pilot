@@ -73,6 +73,19 @@ You can use the Makefile to build and run the service efficiently.
   make deploy
 ```
 
+## 📅 Schedule Agent
+This project now includes a `schedule_agent` flow in `ChatService`.
+
+Behavior:
+- Parse schedule time from user input via LLM.
+- Check DB (`calendar_events`) for time conflicts.
+- If no conflict, insert a new event and confirm to user.
+- If conflict exists, suggest an alternative available time slot.
+
+Example input:
+- `幫我安排明天 14:00 到 15:00 跟 PM 開會`
+- `Schedule project sync on 2026-03-05 10:00 for 60 minutes`
+
 ## 🛠️ How to Use
 ### **1️⃣ Configure services**
 Edit `config/config.yaml`:
