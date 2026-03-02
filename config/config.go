@@ -74,7 +74,14 @@ func GetServerAddress() string {
 }
 
 func GetMySqlAddress() string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", C.Mysql.DBUser, C.Mysql.DBPassword, C.Mysql.DBHost, C.Mysql.DBPort, C.Mysql.DBName)
+	return fmt.Sprintf(
+		"%s:%s@tcp(%s:%d)/%s?parseTime=true&loc=Local&charset=utf8mb4",
+		C.Mysql.DBUser,
+		C.Mysql.DBPassword,
+		C.Mysql.DBHost,
+		C.Mysql.DBPort,
+		C.Mysql.DBName,
+	)
 }
 
 func GetRedisAddress() string {
