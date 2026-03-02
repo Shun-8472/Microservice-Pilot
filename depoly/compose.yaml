@@ -1,6 +1,6 @@
 services:
   application:
-    image: mini:latest
+    image: travel_planning:latest
     restart: always
     build:
       context: ../

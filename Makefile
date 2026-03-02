@@ -4,7 +4,7 @@ docker:
 
 .PHONY: deploy
 deploy:
-	docker-compose -p demo -f ./depoly/compose.yaml up -d --build
+	docker-compose -p travel_planning_agent -f ./depoly/compose.yaml up -d --build
 
 .PHONY: inject
 inject:
