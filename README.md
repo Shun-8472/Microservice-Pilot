@@ -2,6 +2,19 @@
 
 This is a simple **microservice** implemented with **gRPC** that interacts with an **LLM Model** to generate responses.
 
+## 🧩 Project Positioning
+This repository is a **multiple-agent skeleton** for gRPC microservices.
+
+It provides reusable building blocks for:
+- gRPC API layer
+- dependency injection (Wire)
+- tool-calling agent flow
+- short-term memory (Redis)
+- long-term memory and preference storage (MySQL)
+- pluggable LLM providers (Ollama / OpenAI-compatible endpoints)
+
+You can use this project as a starter template, then plug in domain-specific agents (travel planning, support, operations, etc.).
+
 ## 📌 Features
 - **gRPC Communication**: Efficient inter-service communication using **Protocol Buffers (protobuf)**.
 - **LLM Integration**: Uses **Ollama** or other models to generate responses.
@@ -58,4 +71,37 @@ You can use the Makefile to build and run the service efficiently.
 ### **3️⃣ Deploy the service using Docker Compose**
 ```shell
   make deploy
+```
+
+## 🛠️ How to Use
+### **1️⃣ Configure services**
+Edit `config/config.yaml`:
+- Set `mysql`/`redis` host and database settings.
+- Set `llm.provider` and model config.
+- If running inside docker-compose with Ollama service, set:
+  - `llm.baseurl: "http://llm:11434"`
+
+### **2️⃣ Start the stack**
+```shell
+make deploy
+```
+
+### **3️⃣ Call gRPC API**
+Use Postman gRPC or `grpcurl` to call:
+- `chat.v1.ChatService/GenerateMessage`
+- `chat.v1.ChatService/StreamMessage`
+
+Recommended request fields:
+- `session_id` for multi-turn context
+- `user_id` for long-term memory
+- `return_tool_results: true` for tool execution traces
+
+## 🌿 Example Branch
+A complete example implementation is available in branch:
+
+`travel_planning_agen`
+
+Switch to it with:
+```shell
+git checkout travel_planning_agen
 ```
