@@ -1,6 +1,8 @@
-# 🚀 gRPC Microservice with LLM Integration
+# 🚀 Multi-Agent gRPC Framework for LLM Applications
 
-This is a simple **microservice** implemented with **gRPC** that interacts with an **LLM Model** to generate responses.
+This project is a **multiple-agent framework** for building LLM applications with **gRPC microservices**.
+Its goal is to let one **Main Agent** orchestrate focused **Sub Agents** (such as travel planning and scheduling),
+so each agent handles a single domain while reducing context-window usage and unnecessary conversation turns.
 
 ## 🧩 Project Positioning
 This repository is a **multiple-agent skeleton** for gRPC microservices.
@@ -96,12 +98,63 @@ Recommended request fields:
 - `user_id` for long-term memory
 - `return_tool_results: true` for tool execution traces
 
-## 🌿 Example Branch
-A complete example implementation is available in branch:
+## 🌿 Example Branches
+A complete example implementation is available in branches:
 
-`travel_planning_agen`
+- `travel_planning_agen`
+- `schedule_agent`
 
-Switch to it with:
+Switch to one of them with:
 ```shell
 git checkout travel_planning_agen
+# or
+git checkout schedule_agent
+```
+
+After switching, run:
+```shell
+make deploy
+```
+Then the selected branch setup is ready to use.
+
+## 🧠 Multi-Agent Branch Strategy
+If you want to build multiple agents, keep domain agents in separate branches.
+
+Before running a branch, check `config/config.yaml` and `depoly/compose.yaml` to avoid host/port conflicts across services.
+
+Recommended architecture:
+- One strong `Main Agent` acts as the orchestrator.
+- Each `Sub Agent` focuses on one domain task only.
+- `Main Agent` routes requests to the right `Sub Agent`.
+
+Why this pattern:
+- Reduce context window pressure.
+- Reduce unnecessary conversation turns.
+- Keep each agent simpler and easier to maintain.
+
+### Architecture Diagram
+```text
++------------+        +-----------------------+
+| Main Agent |------->| travel_planning_agent |
++------------+        +-----------------------+
+       \
+        \
+         +----------------------+
+         | schedule_agent       |
+         +----------------------+
+```
+
+If your Markdown preview supports Mermaid, you can also use:
+```mermaid
+flowchart LR
+  MA["Main Agent"] --> J[" "]
+  J --> TP["`travel_planning_agen`"]
+  J --> SA["`schedule_agent`"]
+
+  classDef agent fill:#0f1115,stroke:#ffffff,color:#ffffff,stroke-width:1px;
+  classDef sub fill:#0f1115,stroke:#ffffff,color:#e5e7eb,stroke-width:1px;
+  classDef junction fill:transparent,stroke:transparent,color:transparent;
+  class MA agent;
+  class TP,SA sub;
+  class J junction;
 ```
