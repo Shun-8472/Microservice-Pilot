@@ -134,10 +134,14 @@ Why this pattern:
 
 ### Architecture Diagram
 ```text
-+------------+        +----------------------+
-| Main Agent |------->| travel_planning_agen |
-+------------+------->| schedule_agent       |
-                      +----------------------+
++------------+        +-----------------------+
+| Main Agent |------->| travel_planning_agent |
++------------+        +-----------------------+
+       \
+        \
+         +----------------------+
+         | schedule_agent       |
+         +----------------------+
 ```
 
 If your Markdown preview supports Mermaid, you can also use:
