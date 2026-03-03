@@ -134,27 +134,20 @@ Why this pattern:
 
 ### Architecture Diagram
 ```text
-+------------+        +-----------------------+
-| Main Agent |------->| travel_planning_agent |
-+------------+        +-----------------------+
-       \
-        \
-         +----------------------+
-         | schedule_agent       |
-         +----------------------+
++------------+        +----------------------+
+| Main Agent |------->| travel_planning_agen |
++------------+------->| schedule_agent       |
+                      +----------------------+
 ```
 
 If your Markdown preview supports Mermaid, you can also use:
 ```mermaid
 flowchart LR
-  MA["Main Agent"] --> J[" "]
-  J --> TP["`travel_planning_agen`"]
-  J --> SA["`schedule_agent`"]
+  MA["Main Agent"] --> TP["`travel_planning_agen`"]
+  MA --> SA["`schedule_agent`"]
 
   classDef agent fill:#0f1115,stroke:#ffffff,color:#ffffff,stroke-width:1px;
   classDef sub fill:#0f1115,stroke:#ffffff,color:#e5e7eb,stroke-width:1px;
-  classDef junction fill:transparent,stroke:transparent,color:transparent;
   class MA agent;
   class TP,SA sub;
-  class J junction;
 ```
